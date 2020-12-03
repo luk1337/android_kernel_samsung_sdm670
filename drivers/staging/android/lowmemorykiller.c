@@ -567,7 +567,9 @@ static unsigned long lowmem_scan(struct shrinker *s, struct shrink_control *sc)
 
 		lowmem_deathpending_timeout = jiffies + HZ;
 		rem += selected_tasksize;
+
 		rcu_read_unlock();
+		get_task_struct(selected);
 		lmk_count++;
 	} else
 		rcu_read_unlock();
