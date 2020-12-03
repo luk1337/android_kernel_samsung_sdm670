@@ -61,7 +61,7 @@ static inline phys_addr_t msm_timer_get_pa(void) { return 0; }
 static inline int boot_marker_enabled(void) { return 1; }
 void place_marker(const char *name);
 #else
-inline void place_marker(char *name);
+static inline void place_marker(char *name) { };
 static inline int boot_marker_enabled(void) { return 0; }
 #endif
 #endif /*__BOOT_STATS__ */
