@@ -1,4 +1,4 @@
-/* Copyright (c) 2008-2019, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2008-2020, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -788,6 +788,13 @@ struct mdss_panel_info {
 	int panel_state;
 	int blank_state;
 #endif
+
+	/*
+	 * Skip panel reset during panel on/off.
+	 * Set for some in-cell panels
+	 */
+	bool skip_panel_reset;
+
 	/* HDR properties of display panel*/
 	struct mdss_panel_hdr_properties hdr_properties;
 };
