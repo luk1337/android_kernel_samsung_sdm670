@@ -507,6 +507,7 @@ static unsigned long lowmem_scan(struct shrinker *s, struct shrink_control *sc)
 		}
 
 		task_lock(selected);
+		get_task_struct(selected);
 		send_sig(SIGKILL, selected, 0);
 		if (selected->mm) {
 			task_set_lmk_waiting(selected);
@@ -566,7 +567,6 @@ static unsigned long lowmem_scan(struct shrinker *s, struct shrink_control *sc)
 
 		lowmem_deathpending_timeout = jiffies + HZ;
 		rem += selected_tasksize;
-		get_task_struct(selected);
 		rcu_read_unlock();
 		lmk_count++;
 	} else
