@@ -2941,7 +2941,7 @@ static struct snd_soc_dai_driver msm_dai_q6_afe_tx_dai[] = {
 			.channels_min = 1,
 			.channels_max = 8,
 			.rate_min =     8000,
-			.rate_max =	48000,
+			.rate_max =     48000,
 		},
 		.ops = &msm_dai_q6_ops,
 		.id = RT_PROXY_DAI_002_TX,
@@ -2957,7 +2957,7 @@ static struct snd_soc_dai_driver msm_dai_q6_afe_tx_dai[] = {
 			.channels_min = 1,
 			.channels_max = 8,
 			.rate_min =     8000,
-			.rate_max =	48000,
+			.rate_max =     48000,
 		},
 		.ops = &msm_dai_q6_ops,
 		.id = RT_PROXY_DAI_001_TX,
@@ -4424,9 +4424,9 @@ static struct snd_soc_dai_driver msm_dai_q6_mi2s_dai[] = {
 				 SNDRV_PCM_RATE_32000 | SNDRV_PCM_RATE_44100 |
 				 SNDRV_PCM_RATE_48000 | SNDRV_PCM_RATE_96000 |
 				 SNDRV_PCM_RATE_192000,
-			.formats = SNDRV_PCM_FMTBIT_S16_LE |
-				SNDRV_PCM_FMTBIT_S24_LE |
-				SNDRV_PCM_FMTBIT_S24_3LE,
+			.formats = (SNDRV_PCM_FMTBIT_S16_LE|
+						SNDRV_PCM_FMTBIT_S24_LE |
+						SNDRV_PCM_FMTBIT_S24_3LE ),
 			.rate_min =     8000,
 			.rate_max =     192000,
 		},
@@ -6526,6 +6526,10 @@ static int msm_dai_q6_tdm_set_clk(
 {
 	int rc = 0;
 
+	pr_debug("dai_data->group_cfg.tdm_cfg.group_id = %d : %d\n",
+			dai_data->group_cfg.tdm_cfg.group_id,
+			dai_data->clk_set.clk_freq_in_hz);
+
 	dai_data->clk_set.enable = enable;
 
 	rc = afe_set_lpass_clock_v2(port_id,
@@ -6758,6 +6762,11 @@ static int msm_dai_q6_tdm_set_tdm_slot(struct snd_soc_dai *dai,
 		tdm_group->nslots_per_frame = slots;
 		tdm_group->slot_width = slot_width;
 		tdm_group->slot_mask = rx_mask & cap_mask;
+		dev_dbg(dai->dev, "%s:Rx:tdm_group->nslots_per_frame %d\n"
+				"tdm_group->slot_width %d\n"
+				"tdm_group->slot_mask %d\n", __func__,
+				tdm_group->nslots_per_frame,
+				tdm_group->slot_width, tdm_group->slot_mask);
 		break;
 	case AFE_PORT_ID_PRIMARY_TDM_TX:
 	case AFE_PORT_ID_PRIMARY_TDM_TX_1:
@@ -6802,6 +6811,10 @@ static int msm_dai_q6_tdm_set_tdm_slot(struct snd_soc_dai *dai,
 		tdm_group->nslots_per_frame = slots;
 		tdm_group->slot_width = slot_width;
 		tdm_group->slot_mask = tx_mask & cap_mask;
+		dev_dbg(dai->dev, "%s:Tx:tdm_group->nslots_per_frame %d\n"
+			"tdm_group->slot_width %d,tdm_group->slot_mask %d\n"
+			"tx%d\n", __func__, tdm_group->nslots_per_frame,
+			tdm_group->slot_width, tdm_group->slot_mask, tx_mask);
 		break;
 	default:
 		dev_err(dai->dev, "%s: invalid dai id 0x%x\n",
@@ -7294,11 +7307,13 @@ static int msm_dai_q6_tdm_prepare(struct snd_pcm_substream *substream,
 			 * is no group need for only one port
 			 */
 			if (dai_data->num_group_ports > 1) {
+				dev_dbg(dai->dev, "%s:enable afe group\n",
+					__func__);
 				rc = afe_port_group_enable(group_id,
 					&dai_data->group_cfg, true);
 				if (rc < 0) {
 					dev_err(dai->dev,
-					"%s: fail to enable AFE group 0x%x\n",
+					"%s: fail to enable grp %x\n",
 					__func__, group_id);
 					goto rtn;
 				}
@@ -7307,6 +7322,7 @@ static int msm_dai_q6_tdm_prepare(struct snd_pcm_substream *substream,
 
 		rc = afe_tdm_port_start(dai->id, &dai_data->port_cfg,
 			dai_data->rate, dai_data->num_group_ports);
+
 		if (rc < 0) {
 			if (atomic_read(group_ref) == 0) {
 				afe_port_group_enable(group_id,
@@ -7316,7 +7332,7 @@ static int msm_dai_q6_tdm_prepare(struct snd_pcm_substream *substream,
 					dai->id, false);
 				*/
 			}
-			dev_err(dai->dev, "%s: fail to open AFE port 0x%x\n",
+			dev_err(dai->dev, "%s: open AFE port 0x%x\n",
 				__func__, dai->id);
 		} else {
 			set_bit(STATUS_PORT_STARTED,
@@ -7361,6 +7377,7 @@ static void msm_dai_q6_tdm_shutdown(struct snd_pcm_substream *substream,
 			dev_err(dai->dev, "%s: fail to close AFE port 0x%x\n",
 				__func__, dai->id);
 		}
+
 		atomic_dec(group_ref);
 		clear_bit(STATUS_PORT_STARTED,
 			dai_data->status_mask);
@@ -7369,7 +7386,8 @@ static void msm_dai_q6_tdm_shutdown(struct snd_pcm_substream *substream,
 			rc = afe_port_group_enable(group_id,
 				NULL, false);
 			if (rc < 0) {
-				dev_err(dai->dev, "%s: fail to disable AFE group 0x%x\n",
+				dev_err(dai->dev,
+					"%s: fail to disable grp 0x%x\n",
 					__func__, group_id);
 			}
 			/*
@@ -7381,7 +7399,6 @@ static void msm_dai_q6_tdm_shutdown(struct snd_pcm_substream *substream,
 			}
 			*/
 		}
-
 		/* TODO: need to monitor PCM/MI2S/TDM HW status */
 		/* NOTE: AFE should error out if HW resource contention */
 

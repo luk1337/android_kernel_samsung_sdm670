@@ -2021,7 +2021,7 @@ static const struct snd_kcontrol_new msm_anlg_cdc_snd_controls[] = {
 
 	SOC_ENUM_EXT("Enable Micbias", msm_anlg_cdc_micbias_ctl_enum[0],
 		micbias_get, micbias_put),
-		
+
 	SOC_ENUM_EXT("RX HPH Mode", msm_anlg_cdc_hph_mode_ctl_enum[0],
 		msm_anlg_cdc_hph_mode_get, msm_anlg_cdc_hph_mode_set),
 
@@ -2048,6 +2048,8 @@ static const struct snd_kcontrol_new msm_anlg_cdc_snd_controls[] = {
 					8, 0, analog_gain),
 	SOC_SINGLE_EXT("EAR INPUT Mode", SND_SOC_NOPM, 0, 1, 0,
 				ear_input_mode_get, ear_input_mode_put),
+
+
 };
 
 static int tombak_hph_impedance_get(struct snd_kcontrol *kcontrol,
@@ -2647,9 +2649,9 @@ static int msm_anlg_cdc_codec_enable_micbias(struct snd_soc_dapm_widget *w,
 			if (++sdm660_cdc->micb_2_ref_cnt == 1) {
 				msm_anlg_cdc_configure_cap(codec, false, true);
 				snd_soc_update_bits(codec, w->reg, 0x80, 0x80);
-			}		
+			}
 #else
-				msm_anlg_cdc_notifier_call(codec,
+			msm_anlg_cdc_notifier_call(codec,
 					WCD_EVENT_POST_MICBIAS_2_ON);
 #endif /* CONFIG_SAMSUNG_JACK */
 		}
@@ -2776,7 +2778,7 @@ int msm_anlg_cdc_enable_standalone_micbias(struct snd_soc_codec *codec,
 	if (enable) {
 #ifdef CONFIG_SND_SOC_WCD_MBHC
 		rc = msm_anlg_cdc_enable_ext_mb_source(&sdm660_cdc_priv->mbhc,enable);
-#else 
+#else
 		rc = snd_soc_dapm_force_enable_pin(snd_soc_codec_get_dapm(codec),
 			 "MICBIAS_REGULATOR");
 		msm_anlg_cdc_enable_master_bias(codec, enable);
@@ -4463,9 +4465,9 @@ static int msm_anlg_cdc_soc_probe(struct snd_soc_codec *codec)
 		   0);
 
 	msm_anlg_cdc_update_micbias_regulator(
-				sdm660_cdc,
-				on_demand_supply_name[ON_DEMAND_VDDA18_L10],
-				&sdm660_cdc->on_demand_list[ON_DEMAND_VDDA18_L10]);
+			sdm660_cdc,
+			on_demand_supply_name[ON_DEMAND_VDDA18_L10],
+			&sdm660_cdc->on_demand_list[ON_DEMAND_VDDA18_L10]);
 	atomic_set(&sdm660_cdc->on_demand_list[ON_DEMAND_VDDA18_L10].ref,
 		   0);
 

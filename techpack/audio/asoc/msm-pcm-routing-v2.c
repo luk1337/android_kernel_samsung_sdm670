@@ -2721,7 +2721,7 @@ static int msm_routing_lsm_func_put(struct snd_kcontrol *kcontrol,
 		mad_type = MAD_SW_AUDIO;
 		break;
 	default:
-		pr_err("%s: Unknown\n", __func__);
+		WARN(1, "Unknown\n");
 		return -EINVAL;
 	}
 
@@ -18145,6 +18145,7 @@ static const struct snd_soc_dapm_route intercon[] = {
 	{"PRI_TDM_TX_3 Audio Mixer", "MultiMedia33", "MM_DL33"},
 	{"PRI_TDM_TX_3", NULL, "PRI_TDM_TX_3 Audio Mixer"},
 
+
 	{"SEC_TDM_RX_0 Audio Mixer", "MultiMedia1", "MM_DL1"},
 	{"SEC_TDM_RX_0 Audio Mixer", "MultiMedia2", "MM_DL2"},
 	{"SEC_TDM_RX_0 Audio Mixer", "MultiMedia3", "MM_DL3"},
@@ -19218,7 +19219,7 @@ static const struct snd_soc_dapm_route intercon[] = {
 	{"SEC_TDM_RX_0_Voice Mixer", "VoiceMMode1", "VOICEMMODE1_DL"},
 	{"SEC_TDM_RX_0_Voice Mixer", "VoiceMMode2", "VOICEMMODE2_DL"},
 	{"SEC_TDM_RX_0", NULL, "SEC_TDM_RX_0_Voice Mixer"},
-	
+
 	{"SLIM_0_RX_Voice Mixer", "Voip", "VOIP_DL"},
 	{"SLIM_0_RX_Voice Mixer", "DTMF", "DTMF_DL_HL"},
 	{"SLIM_0_RX_Voice Mixer", "QCHAT", "QCHAT_DL"},

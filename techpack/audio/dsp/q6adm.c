@@ -2533,11 +2533,6 @@ int adm_arrange_mch_map(struct adm_cmd_device_open_v5 *open, int path,
 		goto non_mch_path;
 	};
 
-	pr_info("%s : channel_mode = %d, num_channel = %d, set_channel_map = %d\n",
-		__func__,
-		channel_mode,
-		open->dev_num_channel,
-		multi_ch_maps[idx].set_channel_map);
 	if ((open->dev_num_channel > 2) &&
 		(port_channel_map[port_idx].set_channel_map ||
 		 multi_ch_maps[idx].set_channel_map)) {

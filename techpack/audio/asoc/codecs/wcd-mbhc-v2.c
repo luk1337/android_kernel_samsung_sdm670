@@ -9,7 +9,6 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  */
-#define DEBUG
 #include <linux/module.h>
 #include <linux/init.h>
 #include <linux/slab.h>
@@ -131,8 +130,7 @@ void wcd_enable_curr_micbias(const struct wcd_mbhc *mbhc,
 	if (mbhc->mbhc_cb->mbhc_micbias_control)
 		return;
 
-	pr_debug("%s: enter, plug_type:%d cs_mb_en: %d\n", __func__,
-			mbhc->current_plug, cs_mb_en);
+	pr_debug("%s: enter, cs_mb_en: %d\n", __func__, cs_mb_en);
 
 	switch (cs_mb_en) {
 	case WCD_MBHC_EN_CS:
@@ -640,7 +638,7 @@ void wcd_mbhc_report_plug(struct wcd_mbhc *mbhc, int insertion,
 		if (pdata->gnd_sel_gpio)
 			gpio_set_value(pdata->gnd_sel_gpio, 0);
 
-		msm_cdc_pinctrl_select_sleep_state(pdata->us_euro_gpio_p);	
+		msm_cdc_pinctrl_select_sleep_state(pdata->us_euro_gpio_p);
 #endif
 		wcd_mbhc_set_and_turnoff_hph_padac(mbhc);
 		hphrocp_off_report(mbhc, SND_JACK_OC_HPHR);

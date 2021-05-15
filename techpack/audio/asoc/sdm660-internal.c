@@ -288,7 +288,7 @@ static int int_mi2s_bit_format_put(struct snd_kcontrol *kcontrol,
 	int_mi2s_cfg[ch_num].bit_format =
 		int_mi2s_get_bit_format(ucontrol->value.enumerated.item[0]);
 
-	pr_info("%s: int_mi2s[%d]_rx_bit_format = %d, ucontrol value = %d\n",
+	pr_debug("%s: int_mi2s[%d]_rx_bit_format = %d, ucontrol value = %d\n",
 		 __func__, ch_num, int_mi2s_cfg[ch_num].bit_format,
 			ucontrol->value.enumerated.item[0]);
 
@@ -397,7 +397,7 @@ static int int_mi2s_sample_rate_put(struct snd_kcontrol *kcontrol,
 	int_mi2s_cfg[idx].sample_rate =
 		int_mi2s_get_sample_rate(ucontrol->value.enumerated.item[0]);
 
-	pr_info("%s: idx[%d]_sample_rate = %d, item = %d\n", __func__,
+	pr_debug("%s: idx[%d]_sample_rate = %d, item = %d\n", __func__,
 		 idx, int_mi2s_cfg[idx].sample_rate,
 		 ucontrol->value.enumerated.item[0]);
 
@@ -446,7 +446,7 @@ static int int_mi2s_ch_put(struct snd_kcontrol *kcontrol,
 		return idx;
 
 	int_mi2s_cfg[idx].channels = ucontrol->value.enumerated.item[0] + 1;
-	pr_info("%s: int_mi2s_[%d]_ch  = %d\n", __func__,
+	pr_debug("%s: int_mi2s_[%d]_ch  = %d\n", __func__,
 		 idx, int_mi2s_cfg[idx].channels);
 
 	return 1;
@@ -1538,10 +1538,10 @@ static void *def_msm_int_wcd_mbhc_cal(struct snd_soc_card *card)
 {
 	void *msm_int_wcd_cal;
 	struct wcd_mbhc_btn_detect_cfg *btn_cfg;
-	struct device *cdev = card->dev; 
+	struct device *cdev = card->dev;
 	u16 *btn_high;
-	int i; 
-	int ret; 
+	int i;
+	int ret;
 	struct of_phandle_args args;
 
 	msm_int_wcd_cal = kzalloc(WCD_MBHC_CAL_SIZE(WCD_MBHC_DEF_BUTTONS,
@@ -1577,24 +1577,25 @@ static void *def_msm_int_wcd_mbhc_cal(struct snd_soc_card *card)
 	btn_high[2] = 225;
 	btn_high[3] = 450;
 	btn_high[4] = 500;
+
 	btn_high[5] = 500;
 	btn_high[6] = 500;
 	btn_high[7] = 500;
-	
-	for (i = 0; i < WCD_MBHC_DEF_BUTTONS; i++) { 
-  		ret = of_parse_phandle_with_args(cdev->of_node, "mbhc-button-thres", "#list-det-cells", i, &args); 
-  		if (ret < 0) { 
-  			pr_info("%s: btn_high[%d] = %d (default)\n", __func__, i, btn_high[i]); 
-  			continue;
-  		} 
-   
-  #ifdef CONFIG_SEC_FACTORY 
-  	btn_high[i] = args.args[1]; 
-  #else 
-  	btn_high[i] = args.args[0]; 
-  #endif 
-  	pr_info("%s: btn_high[%d] = %d (modified)\n", __func__, i, btn_high[i]); 
-  } 
+
+	for (i = 0; i < WCD_MBHC_DEF_BUTTONS; i++) {
+		ret = of_parse_phandle_with_args(cdev->of_node, "mbhc-button-thres", "#list-det-cells", i, &args);
+		if (ret < 0) {
+			pr_info("%s: btn_high[%d] = %d (default)\n", __func__, i, btn_high[i]); 
+			continue;
+		}
+
+#ifdef CONFIG_SEC_FACTORY
+		btn_high[i] = args.args[1];
+#else
+		btn_high[i] = args.args[0];
+#endif
+	  	pr_info("%s: btn_high[%d] = %d (modified)\n", __func__, i, btn_high[i]);
+	}
 	return msm_int_wcd_cal;
 }
 

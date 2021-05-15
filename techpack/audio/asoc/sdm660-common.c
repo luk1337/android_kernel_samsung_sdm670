@@ -1175,7 +1175,7 @@ int msm_tdm_snd_hw_params(struct snd_pcm_substream *substream,
 	int i;
 	int clk_freq;
 
-	pr_info("%s: dai id = 0x%x\n", __func__, cpu_dai->id);
+	pr_debug("%s: dai id = 0x%x\n", __func__, cpu_dai->id);
 
 	channels = params_channels(params);
 	if (channels < 1 || channels > 32) {
@@ -1706,8 +1706,8 @@ int msm_tdm_snd_hw_params(struct snd_pcm_substream *substream,
 
 	slot_mask = tdm_param_set_slot_mask(cpu_dai->id,
 				slot_width, slots, tdm_interface);
-
 	pr_debug("%s: slot_mask :%x\n", __func__, slot_mask);
+
 	if (substream->stream == SNDRV_PCM_STREAM_CAPTURE) {
 		/* over write slot-mask if configured for full slots */
 		if ((slots == 32) && (slot_width == 16))
@@ -2880,7 +2880,7 @@ static int mi2s_rx_sample_rate_put(struct snd_kcontrol *kcontrol,
 	mi2s_rx_cfg[idx].sample_rate =
 		mi2s_get_sample_rate(ucontrol->value.enumerated.item[0]);
 
-	pr_info("%s: idx[%d]_rx_sample_rate = %d, item = %d\n", __func__,
+	pr_debug("%s: idx[%d]_rx_sample_rate = %d, item = %d\n", __func__,
 		 idx, mi2s_rx_cfg[idx].sample_rate,
 		 ucontrol->value.enumerated.item[0]);
 
@@ -2916,7 +2916,7 @@ static int mi2s_tx_sample_rate_put(struct snd_kcontrol *kcontrol,
 	mi2s_tx_cfg[idx].sample_rate =
 		mi2s_get_sample_rate(ucontrol->value.enumerated.item[0]);
 
-	pr_info("%s: idx[%d]_tx_sample_rate = %d, item = %d\n", __func__,
+	pr_debug("%s: idx[%d]_tx_sample_rate = %d, item = %d\n", __func__,
 		 idx, mi2s_tx_cfg[idx].sample_rate,
 		 ucontrol->value.enumerated.item[0]);
 
@@ -2952,7 +2952,7 @@ static int mi2s_tx_format_put(struct snd_kcontrol *kcontrol,
 	mi2s_tx_cfg[idx].bit_format =
 		mi2s_get_format(ucontrol->value.enumerated.item[0]);
 
-	pr_info("%s: idx[%d] _tx_format = %d, item = %d\n", __func__,
+	pr_debug("%s: idx[%d] _tx_format = %d, item = %d\n", __func__,
 		  idx, mi2s_tx_cfg[idx].bit_format,
 		  ucontrol->value.enumerated.item[0]);
 
@@ -2988,7 +2988,7 @@ static int mi2s_rx_format_put(struct snd_kcontrol *kcontrol,
 	mi2s_rx_cfg[idx].bit_format =
 		mi2s_get_format(ucontrol->value.enumerated.item[0]);
 
-	pr_info("%s: idx[%d] _rx_format = %d, item = %d\n", __func__,
+	pr_debug("%s: idx[%d] _rx_format = %d, item = %d\n", __func__,
 		  idx, mi2s_rx_cfg[idx].bit_format,
 		  ucontrol->value.enumerated.item[0]);
 
@@ -3037,7 +3037,7 @@ static int msm_mi2s_rx_ch_put(struct snd_kcontrol *kcontrol,
 		return idx;
 
 	mi2s_rx_cfg[idx].channels = ucontrol->value.enumerated.item[0] + 1;
-	pr_info("%s: msm_mi2s_[%d]_rx_ch  = %d\n", __func__,
+	pr_debug("%s: msm_mi2s_[%d]_rx_ch  = %d\n", __func__,
 		 idx, mi2s_rx_cfg[idx].channels);
 
 	return 1;
@@ -3067,7 +3067,7 @@ static int msm_mi2s_tx_ch_put(struct snd_kcontrol *kcontrol,
 		return idx;
 
 	mi2s_tx_cfg[idx].channels = ucontrol->value.enumerated.item[0] + 1;
-	pr_info("%s: msm_mi2s_[%d]_tx_ch  = %d\n", __func__,
+	pr_debug("%s: msm_mi2s_[%d]_tx_ch  = %d\n", __func__,
 		 idx, mi2s_tx_cfg[idx].channels);
 
 	return 1;
@@ -3175,7 +3175,7 @@ static int usb_audio_rx_sample_rate_put(struct snd_kcontrol *kcontrol,
 		break;
 	}
 
-	pr_info("%s: control value = %ld, usb_audio_rx_sample_rate = %d\n",
+	pr_debug("%s: control value = %ld, usb_audio_rx_sample_rate = %d\n",
 		__func__, ucontrol->value.integer.value[0],
 		usb_rx_cfg.sample_rate);
 	return 0;
@@ -3226,7 +3226,7 @@ static int usb_audio_rx_format_put(struct snd_kcontrol *kcontrol,
 		usb_rx_cfg.bit_format = SNDRV_PCM_FORMAT_S16_LE;
 		break;
 	}
-	pr_info("%s: usb_audio_rx_format = %d, ucontrol value = %ld\n",
+	pr_debug("%s: usb_audio_rx_format = %d, ucontrol value = %ld\n",
 		 __func__, usb_rx_cfg.bit_format,
 		 ucontrol->value.integer.value[0]);
 
@@ -3247,7 +3247,7 @@ static int usb_audio_tx_ch_put(struct snd_kcontrol *kcontrol,
 {
 	usb_tx_cfg.channels = ucontrol->value.integer.value[0] + 1;
 
-	pr_info("%s: usb_audio_tx_ch = %d\n", __func__, usb_tx_cfg.channels);
+	pr_debug("%s: usb_audio_tx_ch = %d\n", __func__, usb_tx_cfg.channels);
 	return 1;
 }
 
@@ -3337,7 +3337,7 @@ static int usb_audio_tx_sample_rate_put(struct snd_kcontrol *kcontrol,
 		break;
 	}
 
-	pr_info("%s: control value = %ld, usb_audio_tx_sample_rate = %d\n",
+	pr_debug("%s: control value = %ld, usb_audio_tx_sample_rate = %d\n",
 		__func__, ucontrol->value.integer.value[0],
 		usb_tx_cfg.sample_rate);
 	return 0;
@@ -3388,7 +3388,7 @@ static int usb_audio_tx_format_put(struct snd_kcontrol *kcontrol,
 		usb_tx_cfg.bit_format = SNDRV_PCM_FORMAT_S16_LE;
 		break;
 	}
-	pr_info("%s: usb_audio_tx_format = %d, ucontrol value = %ld\n",
+	pr_debug("%s: usb_audio_tx_format = %d, ucontrol value = %ld\n",
 		 __func__, usb_tx_cfg.bit_format,
 		 ucontrol->value.integer.value[0]);
 
@@ -5475,7 +5475,6 @@ EXPORT_SYMBOL(msm_mi2s_snd_shutdown);
 static int msm_get_tdm_mode(u32 port_id)
 {
 	int tdm_mode;
-	pr_info("%s: port id: %d\n", __func__, port_id);
 
 	switch (port_id) {
 	case AFE_PORT_ID_PRIMARY_TDM_RX:
@@ -6411,8 +6410,6 @@ static int msm_asoc_machine_probe(struct platform_device *pdev)
 			ret);
 		goto err;
 	}
-	dev_info(&pdev->dev, "Sound card %s registered\n", card->name);
-
 	if (pdata->snd_card_val > INT_MAX_SND_CARD)
 		msm_ext_register_audio_notifier(pdev);
 

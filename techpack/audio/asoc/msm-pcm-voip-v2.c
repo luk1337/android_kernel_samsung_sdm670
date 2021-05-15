@@ -229,7 +229,7 @@ static int msm_voip_mute_put(struct snd_kcontrol *kcontrol,
 		goto done;
 	}
 
-	pr_info("%s: mute=%d ramp_duration=%d\n", __func__, mute,
+	pr_debug("%s: mute=%d ramp_duration=%d\n", __func__, mute,
 		ramp_duration);
 
 	voc_set_tx_mute(voc_get_session_id(VOIP_SESSION_NAME), TX_PATH, mute,
@@ -253,7 +253,7 @@ static int msm_voip_gain_put(struct snd_kcontrol *kcontrol,
 		goto done;
 	}
 
-	pr_info("%s: volume: %d ramp_duration: %d\n", __func__, volume,
+	pr_debug("%s: volume: %d ramp_duration: %d\n", __func__, volume,
 		ramp_duration);
 
 	voc_set_rx_vol_step(voc_get_session_id(VOIP_SESSION_NAME),
@@ -1058,7 +1058,7 @@ static int voip_config_vocoder(struct snd_pcm_substream *substream)
 	uint32_t evrc_min_rate_type = 0;
 	uint32_t evrc_max_rate_type = 0;
 
-	pr_info("%s(): mode=%d, playback rate=%d, capture rate=%d\n",
+	pr_debug("%s(): mode=%d, playback rate=%d, capture rate=%d\n",
 		 __func__, prtd->mode, prtd->play_samp_rate,
 		 prtd->cap_samp_rate);
 
@@ -1597,7 +1597,7 @@ static int voip_get_media_type(uint32_t mode, uint32_t rate_type,
 		ret = -EINVAL;
 	}
 
-	pr_info("%s: media_type is 0x%x\n", __func__, *media_type);
+	pr_debug("%s: media_type is 0x%x\n", __func__, *media_type);
 
 	return ret;
 }
