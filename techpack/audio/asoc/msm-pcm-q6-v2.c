@@ -753,7 +753,10 @@ static int msm_pcm_open(struct snd_pcm_substream *substream)
 	prtd->set_channel_map = false;
 	prtd->reset_event = false;
 	runtime->private_data = prtd;
-	msm_adsp_init_mixer_ctl_pp_event_queue(soc_prtd);
+
+	if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK)
+		msm_adsp_init_mixer_ctl_pp_event_queue(soc_prtd);
+
 	/* Vote to update the Rx thread priority to RT Thread for playback */
 	if ((substream->stream == SNDRV_PCM_STREAM_PLAYBACK) &&
 	    (pdata->perf_mode == LOW_LATENCY_PCM_MODE))
@@ -887,8 +890,6 @@ static int msm_pcm_playback_close(struct snd_pcm_substream *substream)
 		 * Unvote to downgrade the Rx thread priority from
 		 * RT Thread for Low-Latency use case.
 		 */
-		pdata = (struct msm_plat_data *)
-			dev_get_drvdata(soc_prtd->platform->dev);
 		if (pdata) {
 			if (pdata->perf_mode == LOW_LATENCY_PCM_MODE)
 				apr_end_rx_rt(prtd->audio_client->apr);
@@ -1786,7 +1787,7 @@ static int msm_pcm_playback_app_type_cfg_ctl_put(struct snd_kcontrol *kcontrol,
 	cfg_data.acdb_dev_id = ucontrol->value.integer.value[1];
 	if (ucontrol->value.integer.value[2] != 0)
 		cfg_data.sample_rate = ucontrol->value.integer.value[2];
-	pr_debug("%s: fe_id- %llu session_type- %d be_id- %d app_type- %d acdb_dev_id- %d sample_rate- %d\n",
+	pr_info("%s: fe_id- %llu session_type- %d be_id- %d app_type- %d acdb_dev_id- %d sample_rate- %d\n",
 		__func__, fe_id, session_type, be_id,
 		cfg_data.app_type, cfg_data.acdb_dev_id, cfg_data.sample_rate);
 	ret = msm_pcm_routing_reg_stream_app_type_cfg(fe_id, session_type,
