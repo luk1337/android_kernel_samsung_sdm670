@@ -24,12 +24,6 @@ config ANDROID_LOW_MEMORY_KILLER
 	  scripts (/init.rc), and it defines priority values with minimum free memory size
 	  for each priority.
 
-config SAMSUNG_LMKD_DEBUG
-	bool "record lmkd kill history"
-	default y
-	help
-	  record lmkd kill history
-
 config ANDROID_LOW_MEMORY_KILLER_AUTODETECT_OOM_ADJ_VALUES
 	bool "Android Low Memory Killer: detect oom_adj values"
 	depends on ANDROID_LOW_MEMORY_KILLER
@@ -48,11 +42,16 @@ config ANDROID_VSOC
 	  a 'cuttlefish' Android image inside QEmu. The driver interacts with
 	  a QEmu ivshmem device. If built as a module, it will be called vsoc.
 
-config SAMSUNG_FREECESS
-	bool "thraw frozen process when recv sig"
+config ANDROID_LMK_NOTIFY_TRIGGER
+	bool "Android Low Memory Killer Notify Trigger"
+	depends on ANDROID_LOW_MEMORY_KILLER
 	default n
-	help
-	  thraw frozen process when recv sig.
+	---help---
+	Create node "/sys/kernel/mm/lowmemkiller/notify_trigger_active",
+	on which an userspace application can poll for notification when
+	the number of free physical memory pages in the system falls below
+	a set threshold. The threshold is set by the new module parameter
+	"/sys/module/lowmemorykiller/parameters/notify_trigger".
 
 source "drivers/staging/android/ion/Kconfig"
 
