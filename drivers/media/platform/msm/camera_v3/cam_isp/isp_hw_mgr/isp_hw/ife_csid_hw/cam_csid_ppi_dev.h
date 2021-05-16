@@ -1,4 +1,4 @@
-/* Copyright (c) 2017-2018, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2019, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -10,17 +10,13 @@
  * GNU General Public License for more details.
  */
 
-#ifndef _CAM_ISP_LOG_H_
-#define _CAM_ISP_LOG_H_
+#ifndef _CAM_CSID_PPI_DEV_H_
+#define _CAM_CSID_PPI_DEV_H_
 
-#include <linux/kernel.h>
+#include "cam_isp_hw.h"
 
-#define ISP_TRACE_ENABLE			1
+irqreturn_t cam_csid_ppi_irq(int irq_num, void *data);
+int cam_csid_ppi_probe(struct platform_device *pdev);
+int cam_csid_ppi_remove(struct platform_device *pdev);
 
-#if (ISP_TRACE_ENABLE == 1)
-	#define ISP_TRACE(args...)		trace_printk(args)
-#else
-	#define ISP_TRACE(arg...)
-#endif
-
-#endif /* __CAM_ISP_LOG_H__ */
+#endif /*_CAM_CSID_PPI_DEV_H_ */
