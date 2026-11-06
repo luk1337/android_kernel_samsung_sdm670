@@ -31,7 +31,15 @@ ifeq ($(CONFIG_ARCH_SDM845), y)
 include $(srctree)/techpack/video/config/konavid.conf
 endif
 
+ifeq ($(CONFIG_ARCH_SDM670), y)
+include $(srctree)/techpack/video/config/konavid.conf
+endif
+
 ifeq ($(CONFIG_ARCH_SDM845), y)
+LINUXINCLUDE    += -include $(srctree)/techpack/video/config/konavidconf.h
+endif
+
+ifeq ($(CONFIG_ARCH_SDM670), y)
 LINUXINCLUDE    += -include $(srctree)/techpack/video/config/konavidconf.h
 endif
 
