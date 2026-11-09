@@ -9,6 +9,10 @@ ifeq ($(CONFIG_ARCH_LITO), y)
 include $(srctree)/techpack/camera/config/litocamera.conf
 endif
 
+ifeq ($(CONFIG_ARCH_SDM670), y)
+include $(srctree)/techpack/camera/config/sdm670camera.conf
+endif
+
 ifeq ($(CONFIG_ARCH_KONA), y)
 LINUXINCLUDE    += \
 		-include $(srctree)/techpack/camera/config/konacameraconf.h
@@ -17,6 +21,11 @@ endif
 ifeq ($(CONFIG_ARCH_LITO), y)
 LINUXINCLUDE    += \
 		-include $(srctree)/techpack/camera/config/litocameraconf.h
+endif
+
+ifeq ($(CONFIG_ARCH_SDM670), y)
+LINUXINCLUDE    += \
+		-include $(srctree)/techpack/camera/config/sdm670cameraconf.h
 endif
 
 ifdef CONFIG_SPECTRA_CAMERA_KONA
