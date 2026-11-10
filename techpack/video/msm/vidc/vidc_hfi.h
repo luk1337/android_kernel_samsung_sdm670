@@ -5,7 +5,7 @@
 #ifndef __H_VIDC_HFI_H__
 #define __H_VIDC_HFI_H__
 
-#ifdef CONFIG_ARCH_SDM845
+#if defined(CONFIG_ARCH_SDM845) || defined(CONFIG_ARCH_SDM670)
 #include <media/msm_media_info_legacy.h>
 #else
 #include <media/msm_media_info.h>

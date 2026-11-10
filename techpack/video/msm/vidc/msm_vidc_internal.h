@@ -24,7 +24,7 @@
 #include <media/videobuf2-core.h>
 #include <media/videobuf2-v4l2.h>
 #include "msm_vidc.h"
-#ifdef CONFIG_ARCH_SDM845
+#if defined(CONFIG_ARCH_SDM845) || defined(CONFIG_ARCH_SDM670)
 #include <media/msm_media_info_legacy.h>
 #else
 #include <media/msm_media_info.h>
