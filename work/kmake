@@ -1,0 +1,11 @@
+#!/bin/zsh
+# kernel build wrapper: kmake <targets...>; "kmake defconfig" merges the fragments
+export PATH=$HOME/lineage-24/prebuilts/clang/host/linux-x86/clang-r596125/bin:$PATH
+cd $HOME/tmp.do4dLU5XtT/android_kernel_qcom_sm8250
+args=("$@")
+[[ "$1" == defconfig ]] && args=(vendor/sdm670-perf_defconfig vendor/samsung/gts4lv.config vendor/bringup.config)
+exec make DTC_EXT=${DTC_EXT:-$HOME/lineage-24/out/host/linux-x86/bin/dtc} O=/home/luk/tmp.do4dLU5XtT/work/out \
+  ARCH=arm64 LLVM=1 LLVM_IAS=1 \
+  CROSS_COMPILE=aarch64-linux-gnu- CROSS_COMPILE_ARM32=arm-linux-gnueabi- \
+  CROSS_COMPILE_COMPAT=arm-linux-gnueabi- \
+  -j$(nproc) "${args[@]}"

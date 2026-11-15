@@ -1,0 +1,36 @@
+#!/bin/zsh
+# reboot N times; detect panics into upload mode, grab the log, recover
+W=${0:A:h}
+N=${1:-10}
+L=$W/crash-modem/loop
+mkdir -p $L
+usbmode() {
+  for p in /sys/bus/usb/devices/*/idVendor; do
+    [[ $(cat $p 2>/dev/null) == 04e8 ]] && cat ${p:h}/product 2>/dev/null
+  done
+}
+for i in $(seq 1 $N); do
+  adb reboot 2>/dev/null
+  sleep 10
+  res=timeout up=0
+  for t in $(seq 1 120); do
+    if [[ $(usbmode) == *MSM_UPLOAD* ]]; then res=upload; break; fi
+    up=$(timeout 5 adb shell cut -d. -f1 /proc/uptime 2>/dev/null | tr -d '\r')
+    [[ -n $up && $up -ge 150 ]] && { res=ok; break; }
+    sleep 2
+  done
+  case $res in
+    ok)
+      timeout 20 adb shell 'dmesg | grep -i -E "fatal|crashed|subsys-restart: [a-z_]+:|panic"' > $L/$i-ok.txt 2>&1
+      echo "boot $i: ok (uptime $up, $(wc -l < $L/$i-ok.txt) suspicious lines)" ;;
+    upload)
+      echo "boot $i: UPLOAD MODE (last uptime ${up:-?})"
+      KOUT=$W/out-lineage timeout 600 python3 -I $W/getlog.py $L/$i-upload > $L/$i-getlog.txt 2>&1
+      grep -h -i -E "fatal|crashed|subsys-restart|panic|sfr" $L/$i-upload/*.txt 2>/dev/null | head -8
+      zsh $W/uploadreset > /dev/null 2>&1
+      sleep 20 ;;
+    *)
+      echo "boot $i: no adb/upload after timeout, usb='$(usbmode)'"; exit 1 ;;
+  esac
+done
+echo done

@@ -1,0 +1,23 @@
+# Whitelist: only scripts, notes and patches
+/*
+!/.gitignore
+!/AGENTS.md
+!/TODO.md
+!/make-gts4lv-defconfigs.sh
+!/work/
+/work/*
+!/work/mkboot*
+!/work/kmake*
+!/work/mkdtbo-lineage
+!/work/flashtest
+!/work/uploadreset
+!/work/rebootloop
+!/work/camtest
+!/work/getlog.py
+!/work/wlan/
+!/work/commit/
+!/work/tools/
+!/work/debug/
+*.log
+/work/wlan/fwatch
+/work/wlan/qrtr-*

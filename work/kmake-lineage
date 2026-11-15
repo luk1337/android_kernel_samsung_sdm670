@@ -1,0 +1,13 @@
+#!/bin/zsh
+# Build the kernel with the Lineage gts4lvwifi config into work/out-lineage
+export PATH=$HOME/lineage-24/prebuilts/clang/host/linux-x86/clang-r596125/bin:$PATH
+cd $HOME/lineage-24/kernel/samsung/sdm670
+args=("$@")
+[[ "$1" == defconfig ]] && args=(vendor/sdm670-perf_defconfig vendor/samsung/gts4lv.config vendor/samsung/gts4lvwifi.config ${=KEXTRA})
+K=$HOME/lineage-24/prebuilts/kernel-build-tools/linux-x86
+# Host OpenSSL 4 has no ENGINE API; use the prebuilt BoringSSL like Lineage
+exec make HOSTCFLAGS="-I$K/include" HOSTLDFLAGS="-Wl,-rpath,$K/lib64 -L$K/lib64 -fuse-ld=lld" DTC_EXT=${DTC_EXT:-$HOME/lineage-24/out/host/linux-x86/bin/dtc} O=/home/luk/tmp.do4dLU5XtT/work/out-lineage \
+  ARCH=arm64 LLVM=1 LLVM_IAS=1 \
+  CROSS_COMPILE=aarch64-linux-gnu- CROSS_COMPILE_ARM32=arm-linux-gnueabi- \
+  CROSS_COMPILE_COMPAT=arm-linux-gnueabi- \
+  -j$(nproc) "${args[@]}"

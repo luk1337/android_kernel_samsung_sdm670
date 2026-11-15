@@ -1,0 +1,17 @@
+#!/bin/zsh
+# Package the 4.19 kernel + appended gts4lvwifi DTB with the patched
+# Lineage recovery ramdisk into a header-v1 boot image for the boot partition.
+set -e
+S=/home/luk/tmp.do4dLU5XtT/work
+B=$S/out/arch/arm64/boot
+EXTRA=${1:-}
+cat $B/Image.gz $B/dts/qcom/sdm670-gts4lvwifi-r05.dtb > $S/Image.gz-dtb
+CMDLINE='androidboot.hardware=qcom video=vfb:640x400,bpp=32,memsize=3072000 msm_rtb.filter=0x237 ehci-hcd.park=3 lpm_levels.sleep_disabled=1 service_locator.enable=1 swiotlb=1 loop.max_part=7 androidboot.boot_devices=soc/7c4000.sdhci androidboot.vbmeta.avb_version=1.0 androidboot.selinux=permissive'
+[ -n "$EXTRA" ] && CMDLINE="$CMDLINE $EXTRA"
+mkbootimg --header_version 1 --os_version 17.0.0 --os_patch_level 2026-11 \
+  --kernel $S/Image.gz-dtb --ramdisk $S/unpack/ramdisk.new \
+  --pagesize 0x00001000 --base 0x00000000 --kernel_offset 0x00008000 \
+  --ramdisk_offset 0x02000000 --second_offset 0x00000000 --tags_offset 0x01e00000 \
+  --board SRPSA14B001 --cmdline "$CMDLINE" -o $S/boot-4.19.img
+avbtool add_hash_footer --image $S/boot-4.19.img --partition_name boot --partition_size 67108864
+ls -l $S/boot-4.19.img; sha256sum $S/boot-4.19.img

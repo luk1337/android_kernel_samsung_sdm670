@@ -1,0 +1,11 @@
+#!/bin/zsh
+# Build the OnePlus 6 (sdm845) kernel with the Lineage enchilada config into work/out-op6
+export PATH=$HOME/lineage-24/prebuilts/clang/host/linux-x86/clang-r596125/bin:$PATH
+cd $HOME/lineage-24/kernel/oneplus/sdm845
+args=("$@")
+[[ "$1" == defconfig ]] && args=(vendor/sdm845-perf_defconfig vendor/enchilada.config)
+exec make DTC_EXT=${DTC_EXT:-$HOME/lineage-24/out/host/linux-x86/bin/dtc} O=/home/luk/tmp.do4dLU5XtT/work/out-op6 \
+  ARCH=arm64 LLVM=1 LLVM_IAS=1 \
+  CROSS_COMPILE=aarch64-linux-gnu- CROSS_COMPILE_ARM32=arm-linux-gnueabi- \
+  CROSS_COMPILE_COMPAT=arm-linux-gnueabi- \
+  HOSTCFLAGS="-DOPENSSL_IS_BORINGSSL" -j$(nproc) "${args[@]}"

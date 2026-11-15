@@ -1,0 +1,10 @@
+#!/bin/zsh
+# Build DT overlays with kmake-lineage and pack lin/dtbo.img (same as Lineage's mkdtboimg step)
+set -e
+cd /home/luk/tmp.do4dLU5XtT/work
+./kmake-lineage dtbs
+mkdir -p lin
+$HOME/lineage-24/out/host/linux-x86/bin/mkdtboimg create lin/dtbo.img --page_size=4096 \
+  $(find out-lineage/arch/arm64/boot/dts/samsung -maxdepth 1 -name '*.dtbo' | sort)
+$HOME/lineage-24/out/host/linux-x86/bin/avbtool add_hash_footer --image lin/dtbo.img --partition_name dtbo --partition_size 8388608
+ls -l lin/dtbo.img

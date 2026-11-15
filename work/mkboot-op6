@@ -1,0 +1,11 @@
+#!/bin/zsh
+# Repack Lineage's enchilada boot.img with out-op6's Image.gz-dtb into op6/boot-new.img
+set -e
+cd /home/luk/tmp.do4dLU5XtT/work
+U=$HOME/lineage-24/out/host/linux-x86/bin
+rm -rf op6/u
+$U/unpack_bootimg --boot_img /home/luk/lineage-24/out/target/product/enchilada/boot.img --out op6/u --format=mkbootimg > op6/args.txt
+cp out-op6/arch/arm64/boot/Image.gz-dtb op6/u/kernel
+eval $U/mkbootimg $(cat op6/args.txt) -o op6/boot-new.img
+$U/avbtool add_hash_footer --image op6/boot-new.img --partition_name boot --partition_size 67108864
+ls -l op6/boot-new.img

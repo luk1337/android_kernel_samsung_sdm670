@@ -1,0 +1,188 @@
+diff --git a/techpack/camera/drivers/cam_isp/cam_isp_context.c b/techpack/camera/drivers/cam_isp/cam_isp_context.c
+index 44bf27e1c40c..2893521ce325 100644
+--- a/techpack/camera/drivers/cam_isp/cam_isp_context.c
++++ b/techpack/camera/drivers/cam_isp/cam_isp_context.c
+@@ -19,6 +19,8 @@
+ #include "cam_context_utils.h"
+ #include "cam_cdm_util.h"
+ #include "cam_isp_context.h"
++extern int cam_isp_dbg_be_hdl;
++void cam_mem_dbg_queue(int hdl);
+ #include "cam_common_util.h"
+ 
+ static const char isp_dev_name[] = "cam-isp";
+@@ -872,6 +874,13 @@ static int __cam_isp_ctx_handle_buf_done_for_request(
+ 			continue;
+ 		}
+ 
++		if (req_isp->fence_map_out[j].resource_handle == 0x300e &&
++			cam_isp_dbg_be_hdl) {
++			static int cnt;
++
++			if (!(cnt++ % 30))
++				cam_mem_dbg_queue(cam_isp_dbg_be_hdl);
++		}
+ 		if (!req_isp->bubble_detected) {
+ 			CAM_DBG(CAM_ISP,
+ 				"Sync with success: req %lld res 0x%x fd 0x%x, ctx %u",
+@@ -1132,6 +1141,13 @@ static int __cam_isp_ctx_handle_buf_done_for_request_verify_addr(
+ 				req_isp->fence_map_out[j].sync_id);
+ 			continue;
+ 		} else if (!req_isp->bubble_detected) {
++		if (req_isp->fence_map_out[j].resource_handle == 0x300e &&
++			cam_isp_dbg_be_hdl) {
++			static int cnt;
++
++			if (!(cnt++ % 30))
++				cam_mem_dbg_queue(cam_isp_dbg_be_hdl);
++		}
+ 			CAM_DBG(CAM_ISP,
+ 				"Sync with success: req %lld res 0x%x fd 0x%x, ctx %u",
+ 				req->request_id,
+diff --git a/techpack/camera/drivers/cam_isp/isp_hw_mgr/hw_utils/cam_isp_packet_parser.c b/techpack/camera/drivers/cam_isp/isp_hw_mgr/hw_utils/cam_isp_packet_parser.c
+index c690aea3f4b4..e2a52ccb4a2e 100644
+--- a/techpack/camera/drivers/cam_isp/isp_hw_mgr/hw_utils/cam_isp_packet_parser.c
++++ b/techpack/camera/drivers/cam_isp/isp_hw_mgr/hw_utils/cam_isp_packet_parser.c
+@@ -466,6 +466,7 @@ int cam_isp_add_command_buffers(
+ 	return rc;
+ }
+ 
++int cam_isp_dbg_be_hdl;
+ int cam_isp_add_io_buffers(
+ 	int                                   iommu_hdl,
+ 	int                                   sec_iommu_hdl,
+@@ -622,6 +623,9 @@ int cam_isp_add_io_buffers(
+ 					break;
+ 
+ 				hdl = io_cfg[i].mem_handle[plane_id];
++				if (plane_id == 0 &&
++					io_cfg[i].resource_type == 0x300e)
++					cam_isp_dbg_be_hdl = hdl;
+ 				if (res->process_cmd(res,
+ 						CAM_ISP_HW_CMD_GET_SECURE_MODE,
+ 						&mode,
+diff --git a/techpack/camera/drivers/cam_req_mgr/cam_mem_mgr.c b/techpack/camera/drivers/cam_req_mgr/cam_mem_mgr.c
+index bf8e4289c354..f8fc61556806 100644
+--- a/techpack/camera/drivers/cam_req_mgr/cam_mem_mgr.c
++++ b/techpack/camera/drivers/cam_req_mgr/cam_mem_mgr.c
+@@ -260,6 +260,48 @@ int cam_mem_get_io_buf(int32_t buf_handle, int32_t mmu_handle,
+ }
+ EXPORT_SYMBOL(cam_mem_get_io_buf);
+ 
++
++/* TEMP debug: print the start of a buffer from process context */
++static int cam_mem_dbg_hdl;
++static void cam_mem_dbg_fn(struct work_struct *w)
++{
++	int idx = CAM_MEM_MGR_GET_HDL_IDX(cam_mem_dbg_hdl);
++	struct dma_buf *buf;
++	u32 *va;
++	u32 mx __maybe_unused = 0;
++	size_t k;
++
++	if (idx <= 0 || idx >= CAM_MEM_BUFQ_MAX || !tbl.bufq[idx].active)
++		return;
++	buf = tbl.bufq[idx].dma_buf;
++	if (!buf || dma_buf_begin_cpu_access(buf, DMA_FROM_DEVICE))
++		return;
++	va = dma_buf_vmap(buf);
++	if (va) {
++		u8 *p8 = (u8 *)va;
++		size_t off = 0, n = min_t(size_t, buf->size, 262144), hb[8] = {0};
++		u64 sum = 0;
++
++		for (k = 0; k < n && off + k < buf->size; k++) {
++			sum += p8[off + k];
++			hb[p8[off + k] >> 5]++;
++		}
++		pr_info("DBG RAW size %zu w %08x %08x %08x %08x %08x %08x %08x %08x %08x %08x %08x %08x | +1000 %08x %08x %08x %08x %08x %08x\n",
++			buf->size, va[0], va[1], va[2], va[3], va[4], va[5], va[6], va[7], va[8], va[9], va[10], va[11],
++			va[1000], va[1001], va[1002], va[1003], va[1004], va[1005]);
++		dma_buf_vunmap(buf, va);
++	}
++	dma_buf_end_cpu_access(buf, DMA_FROM_DEVICE);
++}
++static DECLARE_WORK(cam_mem_dbg_work, cam_mem_dbg_fn);
++void cam_mem_dbg_queue(int hdl)
++{
++	if (work_pending(&cam_mem_dbg_work))
++		return;
++	cam_mem_dbg_hdl = hdl;
++	schedule_work(&cam_mem_dbg_work);
++}
++
+ int cam_mem_get_cpu_buf(int32_t buf_handle, uintptr_t *vaddr_ptr, size_t *len)
+ {
+ 	int idx;
+diff --git a/techpack/camera/drivers/cam_sensor_module/cam_eeprom/cam_eeprom_core.c b/techpack/camera/drivers/cam_sensor_module/cam_eeprom/cam_eeprom_core.c
+index 142055828b0d..2d05df54c65d 100644
+--- a/techpack/camera/drivers/cam_sensor_module/cam_eeprom/cam_eeprom_core.c
++++ b/techpack/camera/drivers/cam_sensor_module/cam_eeprom/cam_eeprom_core.c
+@@ -116,6 +116,10 @@ static int cam_eeprom_read_memory(struct cam_eeprom_ctrl_t *e_ctrl,
+ 			}
+ 			memptr += emap[j].mem.valid_size;
+ 		}
++		pr_info("DBG EEPROM map %d/%d saddr %x page %u pageen %u poll %u mem addr %x size %u rc %d\n",
++			j, block->num_map, emap[j].saddr, emap[j].page.valid_size,
++			emap[j].pageen.valid_size, emap[j].poll.valid_size,
++			emap[j].mem.addr, emap[j].mem.valid_size, rc);
+ 
+ 		if (emap[j].pageen.valid_size) {
+ 			i2c_reg_settings.addr_type = emap[j].pageen.addr_type;
+diff --git a/techpack/camera/drivers/cam_sensor_module/cam_sensor/cam_sensor_core.c b/techpack/camera/drivers/cam_sensor_module/cam_sensor/cam_sensor_core.c
+index c1d07f5421e3..7dc43de33ff7 100644
+--- a/techpack/camera/drivers/cam_sensor_module/cam_sensor/cam_sensor_core.c
++++ b/techpack/camera/drivers/cam_sensor_module/cam_sensor/cam_sensor_core.c
+@@ -782,6 +782,43 @@ int cam_sensor_match_id(struct cam_sensor_ctrl_t *s_ctrl)
+ 	return rc;
+ }
+ 
++
++/* TEMP debug: dump a few SMIA registers after streamon */
++static struct cam_sensor_ctrl_t *dbg_sctrl;
++static void dbg_sensor_fn(struct work_struct *w)
++{
++	static const u16 regs[] = { 0x0005, 0x0100, 0x0202, 0x0204,
++		0x020e, 0x0340, 0x0342, 0x0600, 0x0136, 0x0304, 0x0306 };
++	uint32_t v[ARRAY_SIZE(regs)];
++	int i, rc = 0;
++
++	if (!dbg_sctrl || dbg_sctrl->sensor_state != CAM_SENSOR_START)
++		return;
++	mutex_lock(&dbg_sctrl->cam_sensor_mutex);
++	for (i = 0; i < ARRAY_SIZE(regs); i++) {
++		v[i] = 0;
++		rc |= camera_io_dev_read(&dbg_sctrl->io_master_info, regs[i],
++			&v[i], CAMERA_SENSOR_I2C_TYPE_WORD,
++			regs[i] < 0x0100 || regs[i] == 0x0100 ?
++			CAMERA_SENSOR_I2C_TYPE_BYTE : CAMERA_SENSOR_I2C_TYPE_WORD);
++	}
++	if (v[5] > 3000) {
++		struct cam_sensor_i2c_reg_array arr[2] = {
++			{ 0x0202, 3000, 0, 0 }, { 0x0204, 256, 0, 0 } };
++		struct cam_sensor_i2c_reg_setting set = {
++			.reg_setting = arr, .size = 2,
++			.addr_type = CAMERA_SENSOR_I2C_TYPE_WORD,
++			.data_type = CAMERA_SENSOR_I2C_TYPE_WORD };
++
++		pr_info("DBG SENSOR forcing exp 3000 again 256 rc %d\n",
++			camera_io_dev_write(&dbg_sctrl->io_master_info, &set, false));
++	}
++	mutex_unlock(&dbg_sctrl->cam_sensor_mutex);
++	pr_info("DBG SENSOR 0x%x rc %d fc %u mode %x exp %u again %u dgain %u fll %u llp %u tp %u mclk %x pre %u mul %u\n",
++		dbg_sctrl->sensordata->slave_info.sensor_id, rc,
++		v[0], v[1], v[2], v[3], v[4], v[5], v[6], v[7], v[8], v[9], v[10]);
++}
++static DECLARE_DELAYED_WORK(dbg_sensor_work, dbg_sensor_fn);
+ int32_t cam_sensor_driver_cmd(struct cam_sensor_ctrl_t *s_ctrl,
+ 	void *arg)
+ {
+@@ -1057,6 +1094,8 @@ int32_t cam_sensor_driver_cmd(struct cam_sensor_ctrl_t *s_ctrl,
+ 			}
+ 		}
+ 		s_ctrl->sensor_state = CAM_SENSOR_START;
++		dbg_sctrl = s_ctrl;
++		schedule_delayed_work(&dbg_sensor_work, msecs_to_jiffies(1500));
+ 		CAM_INFO(CAM_SENSOR,
+ 			"CAM_START_DEV Success, sensor_id:0x%x,sensor_slave_addr:0x%x",
+ 			s_ctrl->sensordata->slave_info.sensor_id,

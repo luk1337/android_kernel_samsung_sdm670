@@ -1,0 +1,12 @@
+#!/bin/zsh
+# flash boot-4.19.img from recovery, arm Samsung force-upload (param), reboot
+set -e
+S=/home/luk/tmp.do4dLU5XtT/work
+adb push $S/boot-4.19.img /tmp/boot-4.19.img >/dev/null
+adb shell 'dd if=/tmp/boot-4.19.img of=/dev/block/by-name/boot bs=1M 2>/dev/null; sync
+P=/dev/block/by-name/param
+printf "DMID" | dd of=$P bs=1 seek=$((0xb00000)) conv=notrunc 2>/dev/null
+printf "\001\000\000\000" | dd of=$P bs=1 seek=$((0xb003f4)) conv=notrunc 2>/dev/null; sync
+echo "boot: $(sha256sum /dev/block/by-name/boot | cut -c1-16)  debuglevel: $(dd if=$P bs=1 skip=$((0xb00000)) count=4 2>/dev/null)  force_upload: $(dd if=$P bs=1 skip=$((0xb003f4)) count=1 2>/dev/null | od -An -tu1)"'
+adb reboot
+echo rebooted

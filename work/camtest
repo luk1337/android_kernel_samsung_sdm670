@@ -1,0 +1,14 @@
+#!/bin/zsh
+# flash lin/boot-new.img from Android, boot, open Aperture; prints "upload" if it crashed into upload mode
+cd /home/luk/tmp.do4dLU5XtT/work
+timeout 180 adb wait-for-device; adb root >/dev/null; adb wait-for-device
+adb shell 'until [ "$(getprop sys.boot_completed)" = 1 ]; do sleep 2; done; am force-stop org.lineageos.aperture'
+adb push lin/boot-new.img /data/local/tmp/boot-new.img >/dev/null
+adb shell 'dd if=/data/local/tmp/boot-new.img of=/dev/block/by-name/boot bs=4M conv=fsync 2>/dev/null; sync; reboot'
+sleep 5; timeout 180 adb wait-for-device; adb root >/dev/null; adb wait-for-device
+adb shell 'until [ "$(getprop sys.boot_completed)" = 1 ]; do sleep 2; done; uname -v; sleep 3; input keyevent KEYCODE_WAKEUP; wm dismiss-keyguard; dmesg -c >/dev/null; logcat -c; am start -n org.lineageos.aperture/.CameraLauncher >/dev/null'
+if timeout 25 adb wait-for-disconnect; then
+  for i in $(seq 1 60); do lsusb -v -d 04e8:685d 2>/dev/null | grep -q MSM_UPLOAD && { echo upload; exit 1; }; sleep 2; done
+  echo disconnected; exit 2
+fi
+echo alive

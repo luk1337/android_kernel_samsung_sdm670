@@ -1,0 +1,12 @@
+#!/bin/zsh
+# Repack Lineage's out boot.img with out-lineage's Image.gz-dtb; flash together with lin/dtbo.img
+set -e
+cd /home/luk/tmp.do4dLU5XtT/work
+U=$HOME/lineage-24/out/host/linux-x86/bin
+rm -rf lin/u
+$U/unpack_bootimg --boot_img /home/luk/lineage-24/out/target/product/gts4lvwifi/boot.img --out lin/u --format=mkbootimg > lin/args.txt
+cp out-lineage/arch/arm64/boot/Image.gz-dtb lin/u/kernel
+eval $U/mkbootimg $(cat lin/args.txt) -o lin/boot-new.img
+$U/avbtool add_hash_footer --image lin/boot-new.img --partition_name boot --partition_size 67108864
+[[ -f lin/dtbo.img ]] || cp /home/luk/lineage-24/out/target/product/gts4lvwifi/dtbo.img lin/dtbo.img
+ls -l lin/boot-new.img lin/dtbo.img

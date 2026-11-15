@@ -1,0 +1,4 @@
+#!/bin/zsh
+# leave Samsung upload (RAM dump) mode and reboot into the boot partition
+W=${0:A:h}
+timeout 60 python3 -I $W/tools/upload_try.py $W/ext/sboot_dump ReSeT RePoWeR PoWeRdOwN
